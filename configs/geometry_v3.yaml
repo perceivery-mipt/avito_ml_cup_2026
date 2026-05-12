@@ -1,0 +1,101 @@
+experiment:
+  name: geometry_v3
+  base: geometry_v2
+  description: >
+    Geometry-aware candidate retrieval with explicit kernel-based reranking.
+    Candidate generation is inherited from geometry_v2, while final scoring
+    adds a kernel similarity term between candidate items and weighted atoms
+    from the user's interaction history.
+
+data:
+  raw_dir: data/raw
+  interim_dir: data/interim
+  submissions_dir: data/submissions
+
+item_space:
+  eval_verticals:
+    - 0
+    - 2
+    - 3
+    - 4
+    - 5
+    - 7
+
+user_measure:
+  half_life_days: 7.0
+
+  event_weights:
+    contact_eids: 8.0
+    eid_7: 1.0
+    eid_10: 2.0
+    other: 3.0
+
+candidate_generation:
+  inherited_from: geometry_v2
+
+  candidate_sources:
+    vertical_category_region:
+      enabled: true
+      source_weight: 1.00
+      top_profile_keys: 5
+      top_items_per_key: 50
+
+    vertical_category:
+      enabled: true
+      source_weight: 0.60
+      top_profile_keys: 5
+      top_items_per_key: 60
+
+    vertical_sid01:
+      enabled: true
+      source_weight: 0.80
+      top_profile_keys: 5
+      top_items_per_key: 30
+
+    region_sid01:
+      enabled: true
+      source_weight: 0.70
+      top_profile_keys: 5
+      top_items_per_key: 25
+
+candidate_prefilter:
+  # Сначала берём top-N кандидатов из geometry_v2 scoring,
+  # потом пересчитываем их kernel-score.
+  top_candidates_per_user_before_kernel: 500
+
+kernel_reranking:
+  enabled: true
+
+  # Берём только top-N наиболее тяжёлых атомов истории пользователя,
+  # чтобы не считать kernel по всей истории.
+  top_history_atoms_per_user: 30
+
+  # Вес kernel-компоненты в финальном score.
+  kernel_weight: 0.35
+
+  # Вес исходного geometry_v2 score.
+  base_score_weight: 1.00
+
+  # Компоненты similarity.
+  weights:
+    same_vertical: 0.50
+    same_category: 1.00
+    same_region: 0.80
+    same_loc: 0.40
+    same_sid0: 0.30
+    same_sid01: 1.20
+    same_sid012: 1.80
+    same_sid0123: 2.40
+
+  popularity:
+    enabled: true
+    weight: 0.03
+    formula: log1p(item_popularity)
+
+submission:
+  top_final: 160
+  global_fallback_top_k: 160
+  submission_file: data/submissions/submission_geometry_v3.csv
+
+result:
+  public_recall_at_160:
