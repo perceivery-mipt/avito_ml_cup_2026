@@ -1,0 +1,116 @@
+experiment:
+  name: geometry_v4
+  base: geometry_v3
+  description: >
+    Geometry-aware candidate retrieval with extended kernel-based reranking.
+    Candidate generation is inherited from geometry_v3, while final scoring
+    adds max-kernel similarity and contact-aware kernel terms between candidate
+    items and weighted atoms from the user's interaction history.
+
+data:
+  raw_dir: data/raw
+  interim_dir: data/interim
+  submissions_dir: data/submissions
+
+item_space:
+  eval_verticals:
+    - 0
+    - 2
+    - 3
+    - 4
+    - 5
+    - 7
+
+user_measure:
+  half_life_days: 7.0
+
+  event_weights:
+    contact_eids: 8.0
+    eid_7: 1.0
+    eid_10: 2.0
+    other: 3.0
+
+candidate_generation:
+  inherited_from: geometry_v3
+
+  candidate_sources:
+    vertical_category_region:
+      enabled: true
+      source_weight: 1.00
+      top_profile_keys: 5
+      top_items_per_key: 50
+
+    vertical_category:
+      enabled: true
+      source_weight: 0.60
+      top_profile_keys: 5
+      top_items_per_key: 60
+
+    vertical_sid01:
+      enabled: true
+      source_weight: 0.80
+      top_profile_keys: 5
+      top_items_per_key: 30
+
+    region_sid01:
+      enabled: true
+      source_weight: 0.70
+      top_profile_keys: 5
+      top_items_per_key: 25
+
+candidate_prefilter:
+  # Сначала берём top-N кандидатов из geometry_v3 scoring,
+  # потом пересчитываем их расширенный kernel-score.
+  # На мощной VM можно держать значение выше, чем на локальном Mac.
+  top_candidates_per_user_before_kernel: 1000
+
+kernel_reranking:
+  enabled: true
+
+  # Берём top-N наиболее тяжёлых атомов всей истории пользователя,
+  # чтобы считать kernel не по всей истории, а по самым информативным действиям.
+  top_history_atoms_per_user: 50
+
+  # Берём top-N наиболее тяжёлых contact-атомов.
+  # Это отдельная подмера пользовательского интереса, потому что target связан с contact-событиями.
+  top_contact_atoms_per_user: 20
+
+  # Вес исходного geometry_v3/base score.
+  base_score_weight: 1.00
+
+  # Вес суммы kernel-близостей по общей истории.
+  kernel_sum_weight: 0.20
+
+  # Вес максимальной kernel-близости к одному важному item из общей истории.
+  kernel_max_weight: 0.50
+
+  # Вес суммы kernel-близостей только по contact-истории.
+  contact_kernel_sum_weight: 0.30
+
+  # Вес максимальной kernel-близости к одному contact-item.
+  contact_kernel_max_weight: 0.80
+
+  # Компоненты дискретного similarity kernel K(candidate_item, history_item).
+  # sid-префиксы считаются иерархически: чем глубже совпал prefix, тем сильнее сигнал.
+  weights:
+    same_vertical: 0.50
+    same_category: 1.00
+    same_region: 0.80
+    same_loc: 0.40
+    same_sid0: 0.30
+    same_sid01: 1.20
+    same_sid012: 1.80
+    same_sid0123: 2.40
+
+  popularity:
+    enabled: true
+    weight: 0.03
+    formula: log1p(item_popularity)
+
+submission:
+  top_final: 160
+  global_fallback_top_k: 160
+  submission_file: data/submissions/submission_geometry_v4.csv
+
+result:
+  public_recall_at_160:
