@@ -300,7 +300,7 @@ Baseline Recall@160:
 Current Recall@160:
 
 ```text
-<current_score>
+0.0110544427894445
 ```
 
 Разница:
