@@ -113,4 +113,4 @@ submission:
   submission_file: data/submissions/submission_geometry_v4.csv
 
 result:
-  public_recall_at_160:
+  public_recall_at_160: 0.0139647074

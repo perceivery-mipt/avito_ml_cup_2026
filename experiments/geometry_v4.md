@@ -349,7 +349,7 @@ n_unknown_items = 0
 Сабмит валиден?
 
 ```text
-[] да
+[x] да
 [ ] нет
 ```
 
@@ -378,13 +378,13 @@ Baseline Recall@160:
 Current Recall@160:
 
 ```text
-
+0.0139647074
 ```
 
 Разница:
 
 ```text
-
+0.0139647074 - 0.0151567706 = -0.0011920632
 ```
 
 Вывод:
@@ -402,19 +402,19 @@ Current Recall@160:
 Что, вероятно, сработало:
 
 ```text
-
+Скрипт успешно построил валидный contact-aware kernel submission на VM. Идея технически реализуема: были рассчитаны kernel_sum, kernel_max, contact_kernel_sum и contact_kernel_max.
 ```
 
 Что, вероятно, не сработало:
 
 ```text
-
+Текущая contact-aware формула ухудшила Public Recall@160 относительно geometry_v3. Вероятно, contact_kernel_max_weight = 0.80 слишком агрессивно усилил узкий сигнал contact-истории, а уменьшенный budget top_candidates=300, top_history_atoms=20, top_contact_atoms=10 ограничил качество reranking.
 ```
 
 Почему мог получиться такой результат:
 
 ```text
-
+geometry_v3 использует более сбалансированный kernel по общей истории пользователя. geometry_v4 дополнительно усиливает contact-only историю, но при текущих параметрах это могло сузить рекомендации и вытеснить полезных кандидатов из top-160.
 ```
 
 ---
@@ -423,7 +423,7 @@ Current Recall@160:
 
 ```text
 [ ] принять как новый baseline
-[ ] оставить как идею, но не baseline
+[x] оставить как идею, но не baseline
 [ ] отклонить
 [ ] повторить с другими параметрами
 ```
@@ -431,7 +431,7 @@ Current Recall@160:
 Причина:
 
 ```text
-
+geometry_v4 получил Public Recall@160 = 0.0139647074, что ниже geometry_v3 = 0.0151567706. Текущий лучший baseline остаётся geometry_v3.
 ```
 
 Следующий шаг:
