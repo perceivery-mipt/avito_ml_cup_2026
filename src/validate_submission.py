@@ -1,3 +1,4 @@
+import argparse
 import polars as pl
 from pathlib import Path
 import sys
@@ -7,15 +8,29 @@ sys.path.append(str(PROJECT_ROOT))
 
 from configs.paths import EVAL_USERS_PATH, INTERIM_DIR, SUBMISSIONS_DIR
 
-SUBMISSION_PATH = SUBMISSIONS_DIR / "submission_geometry_v1.csv"
+DEFAULT_SUBMISSION_PATH = SUBMISSIONS_DIR / "submission_geometry_v1.csv"
 ITEM_GEOMETRY_PATH = INTERIM_DIR / "item_geometry_eval_verticals.parquet"
 
 
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--submission",
+        type=str,
+        default=str(DEFAULT_SUBMISSION_PATH),
+        help="Path to submission CSV file.",
+    )
+    return parser.parse_args()
+
+
 def main() -> None:
-    print(f"Validating submission: {SUBMISSION_PATH}")
+    args = parse_args()
+    submission_path = Path(args.submission)
+
+    print(f"Validating submission: {submission_path}")
 
     sub = (
-        pl.scan_csv(SUBMISSION_PATH)
+        pl.scan_csv(submission_path)
         .select(
             [
                 pl.col("user_id").cast(pl.UInt32),

@@ -1,0 +1,140 @@
+experiment:
+  name: geometry_v2
+  description: >
+    Geometry-aware candidate retrieval using user interest measures,
+    categorical item geometry, hierarchical semantic ids, popularity priors,
+    and an additional region-aware semantic source.
+
+data:
+  raw_dir: data/raw
+  interim_dir: data/interim
+  submissions_dir: data/submissions
+
+  required_raw_files:
+    - item_features.parquet
+    - eval_user_events.pq
+    - eval_users.csv
+    - contact_eids.csv
+
+item_space:
+  eval_verticals:
+    - 0
+    - 2
+    - 3
+    - 4
+    - 5
+    - 7
+
+  item_features:
+    - item_id
+    - vertical_id
+    - category_ext_y
+    - region_id_y
+    - loc_id_y
+    - sid_0_y
+    - sid_1_y
+    - sid_2_y
+    - sid_3_y
+
+user_measure:
+  half_life_days: 7.0
+
+  event_weights:
+    contact_eids: 8.0
+    eid_7: 1.0
+    eid_10: 2.0
+    other: 3.0
+
+  time_decay:
+    formula: event_alpha * exp(-lambda * age_days)
+    lambda: log(2) / half_life_days
+
+user_profiles:
+  vertical_category_region:
+    keys:
+      - vertical_id
+      - category_ext_y
+      - region_id_y
+    top_k_per_user: 20
+
+  vertical_category:
+    keys:
+      - vertical_id
+      - category_ext_y
+    top_k_per_user: 20
+
+  vertical_sid01:
+    keys:
+      - vertical_id
+      - sid_0_y
+      - sid_1_y
+    top_k_per_user: 30
+
+  vertical_sid012:
+    keys:
+      - vertical_id
+      - sid_0_y
+      - sid_1_y
+      - sid_2_y
+    top_k_per_user: 30
+
+  region_sid01:
+    keys:
+      - region_id_y
+      - sid_0_y
+      - sid_1_y
+    top_k_per_user: 30
+
+candidate_indices:
+  top_k_per_key: 300
+  global_top_k: 5000
+
+submission:
+  top_final: 160
+  global_fallback_top_k: 160
+
+candidate_sources:
+  vertical_category_region:
+    enabled: true
+    source_weight: 1.00
+    top_profile_keys: 5
+    top_items_per_key: 50
+
+  vertical_category:
+    enabled: true
+    source_weight: 0.60
+    top_profile_keys: 5
+    top_items_per_key: 60
+
+  vertical_sid01:
+    enabled: true
+    source_weight: 0.80
+    top_profile_keys: 5
+    top_items_per_key: 30
+
+  region_sid01:
+    enabled: true
+    source_weight: 0.70
+    top_profile_keys: 5
+    top_items_per_key: 25
+
+  vertical_sid012:
+    enabled: false
+    source_weight: 0.50
+    top_profile_keys: 5
+    top_items_per_key: 20
+
+scoring:
+  formula: mass * source_weight * (1 + log1p(item_popularity)) / sqrt(rank_in_key)
+
+postprocessing:
+  remove_seen_items: true
+  aggregate_duplicate_user_item_scores: sum
+  fallback: global_popular
+  sort_by:
+    - score_desc
+    - item_id_asc
+
+result:
+  submission_file: data/submissions/submission_geometry_v2.csv
+  public_recall_at_160:
