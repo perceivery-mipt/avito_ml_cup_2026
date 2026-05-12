@@ -1,0 +1,11 @@
+polars
+pyarrow
+duckdb
+pandas
+numpy
+scipy
+tqdm
+matplotlib
+scikit-learn
+ipykernel
+jupyter
