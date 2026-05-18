@@ -12,3 +12,6 @@ data/submissions/*
 !data/interim/.gitkeep
 !data/processed/.gitkeep
 !data/submissions/.gitkeep
+
+# Local secrets
+.env
